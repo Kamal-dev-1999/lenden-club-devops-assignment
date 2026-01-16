@@ -115,32 +115,14 @@ resource "aws_security_group" "devsecops_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # FIXED: Egress restricted to required ports only
-  # HTTPS for package downloads and external APIs
+  # FIXED: Egress restricted to VPC CIDR only (no public internet access)
+  # For production, use NAT Gateway + VPC Endpoints for external access
   egress {
-    description = "HTTPS outbound"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # HTTP for package downloads (some mirrors use HTTP)
-  egress {
-    description = "HTTP outbound"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # DNS resolution
-  egress {
-    description = "DNS outbound"
-    from_port   = 53
-    to_port     = 53
-    protocol    = "udp"
-    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound within VPC"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["10.0.0.0/16"]  # VPC CIDR only - no public internet
   }
 
   tags = {
