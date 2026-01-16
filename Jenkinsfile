@@ -1,11 +1,13 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'ubuntu:22.04'
+            args '-u root'
+        }
+    }
 
     environment {
         AWS_REGION = 'us-east-1'
-        // Link the Jenkins Credential IDs to Environment Variables
-        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
-        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         TRIVY_CACHE_DIR = '.trivy-cache'
         TERRAFORM_VERSION = '1.0'
     }
@@ -17,6 +19,15 @@ pipeline {
     }
 
     stages {
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                    apt-get update
+                    apt-get install -y git curl wget jq unzip
+                '''
+            }
+        }
+
         stage('Checkout Code') {
             steps {
                 script {
@@ -24,11 +35,9 @@ pipeline {
                     echo "STAGE: Checkout Code from Git"
                     echo "=========================================="
                 }
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/main']],
-                    userRemoteConfigs: [[url: 'https://github.com/Kamal-dev-1999/lenden-club-devops-assignment']]
-                ])
+                sh '''
+                    git clone --branch main https://github.com/Kamal-dev-1999/lenden-club-devops-assignment.git repo
+                '''
                 script {
                     echo "✓ Code checked out successfully"
                     echo "Current workspace: ${WORKSPACE}"
@@ -51,6 +60,7 @@ pipeline {
 
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     sh '''
+                        cd repo
                         # Install Trivy if not present
                         if ! command -v trivy &> /dev/null; then
                             echo "[*] Installing Trivy..."
@@ -136,10 +146,13 @@ pipeline {
                 }
 
                 sh '''
+                    cd repo
                     # Check if Terraform is installed
                     if ! command -v terraform &> /dev/null; then
-                        echo "[!] Terraform not found. Please install Terraform."
-                        exit 1
+                        echo "[!] Terraform not found. Installing Terraform..."
+                        curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add - 2>/dev/null || true
+                        apt-get update
+                        apt-get install -y terraform git curl jq
                     fi
 
                     echo ""
@@ -196,10 +209,6 @@ pipeline {
                 echo "Build URL: ${env.BUILD_URL}"
                 echo "=========================================="
             }
-
-            // Archive reports
-            archiveArtifacts artifacts: '**/trivy-scan-report.json', allowEmptyArchive: true
-            archiveArtifacts artifacts: '**/tfplan', allowEmptyArchive: true
         }
 
         success {
@@ -221,10 +230,6 @@ pipeline {
                 echo ""
                 echo "❌ Pipeline failed. Check logs above for details."
             }
-        }
-
-        cleanup {
-            cleanWs()
         }
     }
 }
