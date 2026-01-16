@@ -19,8 +19,25 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                    apt-get update
-                    apt-get install -y git curl wget jq unzip
+                    # Skip if already in Docker environment with tools
+                    echo "[*] Checking for required tools..."
+                    
+                    # Install Trivy if not present
+                    if ! command -v trivy &> /dev/null; then
+                        echo "[*] Installing Trivy..."
+                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin 2>/dev/null || true
+                    fi
+                    
+                    # Install Terraform if not present
+                    if ! command -v terraform &> /dev/null; then
+                        echo "[*] Installing Terraform..."
+                        TERRAFORM_VERSION="1.5.0"
+                        wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -O /tmp/terraform.zip 2>/dev/null || curl -fsSL -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+                        unzip -q /tmp/terraform.zip -d /usr/local/bin/
+                        rm /tmp/terraform.zip
+                    fi
+                    
+                    echo "✓ Dependencies check complete"
                 '''
             }
         }
@@ -146,10 +163,11 @@ pipeline {
                     cd repo
                     # Check if Terraform is installed
                     if ! command -v terraform &> /dev/null; then
-                        echo "[!] Terraform not found. Installing Terraform..."
-                        curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add - 2>/dev/null || true
-                        apt-get update
-                        apt-get install -y terraform git curl jq
+                        echo "[!] Terraform not found. Attempting installation..."
+                        TERRAFORM_VERSION="1.5.0"
+                        wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -O /tmp/terraform.zip 2>/dev/null || curl -fsSL -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+                        unzip -q /tmp/terraform.zip -d /usr/local/bin/
+                        rm /tmp/terraform.zip
                     fi
 
                     echo ""
