@@ -26,25 +26,29 @@ pipeline {
                     echo "[*] Checking for required tools..."
                     
                     # Install Trivy if not present
-                    if ! command -v trivy &> /dev/null; then
+                    if [ ! -f /tmp/tools/trivy ]; then
                         echo "[*] Installing Trivy to /tmp/tools..."
                         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /tmp/tools 2>/dev/null || true
+                    else
+                        echo "[*] Trivy already installed"
                     fi
                     
                     # Install Terraform if not present
-                    if ! command -v terraform &> /dev/null; then
+                    if [ ! -f /tmp/tools/terraform ]; then
                         echo "[*] Installing Terraform to /tmp/tools..."
-                        wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -O /tmp/terraform.zip 2>/dev/null || curl -fsSL -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-                        unzip -q /tmp/terraform.zip -d /tmp/tools/
+                        curl -fsSL -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+                        unzip -o -q /tmp/terraform.zip -d /tmp/tools/
                         chmod +x /tmp/tools/terraform
-                        rm /tmp/terraform.zip
+                        rm -f /tmp/terraform.zip
+                    else
+                        echo "[*] Terraform already installed"
                     fi
                     
-                    echo "✓ Dependencies installed successfully"
+                    echo "✓ Dependencies ready"
                     echo "Trivy version:"
-                    trivy --version || echo "Trivy not available"
+                    /tmp/tools/trivy --version || echo "Trivy not available"
                     echo "Terraform version:"
-                    terraform --version || echo "Terraform not available"
+                    /tmp/tools/terraform --version || echo "Terraform not available"
                 '''
             }
         }
