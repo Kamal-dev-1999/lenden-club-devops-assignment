@@ -6,7 +6,8 @@ pipeline {
         AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         TRIVY_CACHE_DIR = '.trivy-cache'
-        TERRAFORM_VERSION = '1.0'
+        TERRAFORM_VERSION = '1.5.0'
+        PATH = "/tmp/tools:${PATH}"
     }
 
     options {
@@ -19,25 +20,31 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                    # Skip if already in Docker environment with tools
+                    # Create tools directory
+                    mkdir -p /tmp/tools
+                    
                     echo "[*] Checking for required tools..."
                     
                     # Install Trivy if not present
                     if ! command -v trivy &> /dev/null; then
-                        echo "[*] Installing Trivy..."
-                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin 2>/dev/null || true
+                        echo "[*] Installing Trivy to /tmp/tools..."
+                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /tmp/tools 2>/dev/null || true
                     fi
                     
                     # Install Terraform if not present
                     if ! command -v terraform &> /dev/null; then
-                        echo "[*] Installing Terraform..."
-                        TERRAFORM_VERSION="1.5.0"
+                        echo "[*] Installing Terraform to /tmp/tools..."
                         wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -O /tmp/terraform.zip 2>/dev/null || curl -fsSL -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-                        unzip -q /tmp/terraform.zip -d /usr/local/bin/
+                        unzip -q /tmp/terraform.zip -d /tmp/tools/
+                        chmod +x /tmp/tools/terraform
                         rm /tmp/terraform.zip
                     fi
                     
-                    echo "✓ Dependencies check complete"
+                    echo "✓ Dependencies installed successfully"
+                    echo "Trivy version:"
+                    trivy --version || echo "Trivy not available"
+                    echo "Terraform version:"
+                    terraform --version || echo "Terraform not available"
                 '''
             }
         }
@@ -164,9 +171,10 @@ pipeline {
                     # Check if Terraform is installed
                     if ! command -v terraform &> /dev/null; then
                         echo "[!] Terraform not found. Attempting installation..."
-                        TERRAFORM_VERSION="1.5.0"
+                        mkdir -p /tmp/tools
                         wget -q https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -O /tmp/terraform.zip 2>/dev/null || curl -fsSL -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-                        unzip -q /tmp/terraform.zip -d /usr/local/bin/
+                        unzip -q /tmp/terraform.zip -d /tmp/tools/
+                        chmod +x /tmp/tools/terraform
                         rm /tmp/terraform.zip
                     fi
 
