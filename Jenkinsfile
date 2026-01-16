@@ -3,6 +3,9 @@ pipeline {
 
     environment {
         AWS_REGION = 'us-east-1'
+        // Link the Jenkins Credential IDs to Environment Variables
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         TRIVY_CACHE_DIR = '.trivy-cache'
         TERRAFORM_VERSION = '1.0'
     }
@@ -24,7 +27,7 @@ pipeline {
                 checkout([
                     $class: 'GitSCM',
                     branches: [[name: '*/main']],
-                    userRemoteConfigs: [[url: 'https://github.com/your-org/your-repo.git']]
+                    userRemoteConfigs: [[url: 'https://github.com/Kamal-dev-1999/lenden-club-devops-assignment']]
                 ])
                 script {
                     echo "✓ Code checked out successfully"
