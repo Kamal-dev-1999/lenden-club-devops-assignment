@@ -1,6 +1,10 @@
 # Use Alpine Linux as base image
 FROM node:18-alpine
 
+# SECURITY: Create non-root user for running the application
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodeuser -u 1001 -G nodejs
+
 # Set working directory
 WORKDIR /app
 
@@ -8,10 +12,14 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 
 # Install dependencies
-RUN npm install --production
+RUN npm install --production && \
+    chown -R nodeuser:nodejs /app
 
 # Copy application files
-COPY app.js .
+COPY --chown=nodeuser:nodejs app.js .
+
+# SECURITY: Switch to non-root user (fixes AVD-DS-0002)
+USER nodeuser
 
 # Expose port
 EXPOSE 3000

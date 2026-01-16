@@ -15,12 +15,12 @@ output "instance_private_ip" {
 
 output "security_group_id" {
   description = "Security Group ID"
-  value       = aws_security_group.vulnerable_sg.id
+  value       = aws_security_group.devsecops_sg.id
 }
 
 output "security_group_name" {
   description = "Security Group name"
-  value       = aws_security_group.vulnerable_sg.name
+  value       = aws_security_group.devsecops_sg.name
 }
 
 output "ssh_connection_string" {

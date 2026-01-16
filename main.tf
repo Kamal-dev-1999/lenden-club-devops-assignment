@@ -24,12 +24,12 @@ resource "aws_vpc" "devsecops_vpc" {
   }
 }
 
-# Public Subnet
+# Public Subnet - Public IP assignment controlled at instance level
 resource "aws_subnet" "devsecops_subnet" {
   vpc_id                  = aws_vpc.devsecops_vpc.id
   cidr_block              = "10.0.1.0/24"
   availability_zone       = data.aws_availability_zones.available.names[0]
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false  # FIXED: Don't auto-assign public IPs
 
   tags = {
     Name        = "devsecops-subnet"
@@ -73,19 +73,19 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-# Security Group - Intentionally vulnerable for security scanner testing
-resource "aws_security_group" "vulnerable_sg" {
-  name        = "devsecops-vulnerable-sg"
-  description = "Intentionally vulnerable security group for testing security scanners"
+# Security Group - Hardened configuration
+resource "aws_security_group" "devsecops_sg" {
+  name        = "devsecops-secure-sg"
+  description = "Hardened security group following security best practices"
   vpc_id      = aws_vpc.devsecops_vpc.id
 
-  # VULNERABILITY: Allows all inbound SSH traffic from anywhere
+  # SSH restricted to specific trusted IP (replace with your actual IP or VPN CIDR)
   ingress {
-    description = "SSH from anywhere - INTENTIONAL VULNERABILITY"
+    description = "SSH from trusted IP only"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.allowed_ssh_cidr]  # Restricted to specific IP
   }
 
   # Allow HTTP for the application
@@ -106,7 +106,7 @@ resource "aws_security_group" "vulnerable_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Allow Node.js application port 3000
+  # Allow Node.js application port 3000 (your app will still be accessible!)
   ingress {
     description = "Node.js app on port 3000"
     from_port   = 3000
@@ -115,34 +115,63 @@ resource "aws_security_group" "vulnerable_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Allow all outbound traffic
+  # FIXED: Egress restricted to required ports only
+  # HTTPS for package downloads and external APIs
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    description = "HTTPS outbound"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # HTTP for package downloads (some mirrors use HTTP)
+  egress {
+    description = "HTTP outbound"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # DNS resolution
+  egress {
+    description = "DNS outbound"
+    from_port   = 53
+    to_port     = 53
+    protocol    = "udp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {
-    Name        = "devsecops-vulnerable-sg"
+    Name        = "devsecops-secure-sg"
     Environment = var.environment
-    Purpose     = "Security Scanner Testing"
+    Purpose     = "Production-ready security"
   }
 }
 
-# EC2 Instance
+# EC2 Instance - Hardened configuration
 resource "aws_instance" "devsecops_app" {
   ami                    = data.aws_ami.ubuntu.id
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.devsecops_subnet.id
-  vpc_security_group_ids = [aws_security_group.vulnerable_sg.id]
+  vpc_security_group_ids = [aws_security_group.devsecops_sg.id]
   key_name               = var.key_pair_name
   associate_public_ip_address = true
+
+  # FIXED: Require IMDSv2 tokens to prevent SSRF attacks
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"  # Forces IMDSv2
+    http_put_response_hop_limit = 1
+    instance_metadata_tags      = "enabled"
+  }
 
   root_block_device {
     volume_type           = "gp3"
     volume_size           = 20
     delete_on_termination = true
+    encrypted             = true  # FIXED: Enable encryption at rest
 
     tags = {
       Name = "devsecops-root-volume"
@@ -158,7 +187,7 @@ resource "aws_instance" "devsecops_app" {
     Environment = var.environment
   }
 
-  depends_on = [aws_security_group.vulnerable_sg]
+  depends_on = [aws_security_group.devsecops_sg]
 }
 
 # Data source to get the latest Ubuntu AMI

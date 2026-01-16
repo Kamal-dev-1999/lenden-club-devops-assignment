@@ -20,3 +20,10 @@ variable "environment" {
   type        = string
   default     = "development"
 }
+
+# SECURITY: Variable for allowed SSH CIDR block
+variable "allowed_ssh_cidr" {
+  description = "CIDR block allowed to SSH into the instance (e.g., your office IP/32)"
+  type        = string
+  default     = "10.0.0.0/8"  # Default to private network - override in production
+}
