@@ -7,7 +7,6 @@ pipeline {
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
         TRIVY_CACHE_DIR = '.trivy-cache'
         TERRAFORM_VERSION = '1.5.0'
-        // This ensures the pipeline looks in your custom folder for the tools
         PATH = "/tmp/tools:${PATH}"
     }
 
@@ -23,13 +22,11 @@ pipeline {
                 sh '''
                     mkdir -p /tmp/tools
                     
-                    # Install Trivy to /tmp/tools if not present
                     if ! command -v trivy &> /dev/null; then
                         echo "[*] Installing Trivy..."
                         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /tmp/tools
                     fi
                     
-                    # Install Terraform to /tmp/tools if not present
                     if ! command -v terraform &> /dev/null; then
                         echo "[*] Installing Terraform..."
                         curl -fsSL -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
@@ -44,9 +41,9 @@ pipeline {
         stage('Infrastructure Security Scan') {
             steps {
                 script {
-                    echo "STAGE: Infrastructure Security Scan (Trivy)" [cite: 34, 35]
+                    // Removed brackets that caused the compilation error
+                    echo "STAGE: Infrastructure Security Scan (Trivy)"
                 }
-                // Fail on failure but clearly show security warnings as required [cite: 39]
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     sh '''
                         trivy config . \
@@ -61,7 +58,7 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 script {
-                    echo "STAGE: Terraform Plan" [cite: 45]
+                    echo "STAGE: Terraform Plan"
                 }
                 sh '''
                     terraform init
