@@ -249,16 +249,38 @@ After applying all remediation steps, the final Trivy scan shows:
 ## 📁 Project Structure
 
 ```
-├── app.js                 # Node.js Express application
-├── package.json           # Node.js dependencies
-├── Dockerfile             # Container configuration (hardened)
-├── docker-compose.yml     # Docker Compose setup
-├── main.tf                # Terraform infrastructure (hardened)
-├── variables.tf           # Terraform variables
-├── outputs.tf             # Terraform outputs
-├── user_data.sh           # EC2 bootstrap script
-├── Jenkinsfile            # CI/CD pipeline definition
-└── README.md              # This documentation
+lenden-club-devops-assignment/
+│
+├── app/                          # Application source code
+│   ├── app.js                    # Node.js Express server
+│   └── package.json              # Node.js dependencies
+│
+├── docker/                       # Container configuration
+│   ├── Dockerfile                # Docker image definition (hardened)
+│   └── docker-compose.yml        # Multi-container orchestration
+│
+├── terraform/                    # Infrastructure as Code
+│   ├── main.tf                   # AWS resources (VPC, EC2, SG)
+│   ├── variables.tf              # Input variables
+│   ├── outputs.tf                # Output values
+│   ├── user_data.sh              # EC2 bootstrap script
+│   ├── vulnerable_main.tf        # Original vulnerable code (for reference)
+│   └── README.md                 # Terraform-specific documentation
+│
+├── reports/                      # Scan results & logs
+│   ├── build-logs/               # Jenkins build outputs
+│   │   ├── build-13-vulnerable.txt   # Initial scan (8 issues)
+│   │   ├── build-14-partial-fix.txt  # After first fixes
+│   │   └── build-15-secure.txt       # Final scan (0 issues)
+│   └── trivy-scans/              # Trivy scan reports
+│
+├── docs/                         # Additional documentation
+├── Screenshots/                  # UI screenshots for demo
+├── Video Demo/                   # Video demonstration
+│
+├── Jenkinsfile                   # CI/CD pipeline definition
+├── .gitignore                    # Git ignore rules
+└── README.md                     # Project documentation (this file)
 ```
 
 ---

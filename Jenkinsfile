@@ -41,12 +41,18 @@ pipeline {
         stage('Infrastructure Security Scan') {
             steps {
                 script {
-                    // Removed brackets that caused the compilation error
                     echo "STAGE: Infrastructure Security Scan (Trivy)"
                 }
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     sh '''
-                        trivy config . \
+                        echo "Scanning Terraform files..."
+                        trivy config terraform/ \
+                            --format table \
+                            --severity HIGH,CRITICAL \
+                            --exit-code 0
+                        
+                        echo "Scanning Docker files..."
+                        trivy config docker/ \
                             --format table \
                             --severity HIGH,CRITICAL \
                             --exit-code 0
@@ -61,6 +67,7 @@ pipeline {
                     echo "STAGE: Terraform Plan"
                 }
                 sh '''
+                    cd terraform
                     terraform init
                     terraform plan -var="key_pair_name=devsecops-dev-key" -input=false
                 '''

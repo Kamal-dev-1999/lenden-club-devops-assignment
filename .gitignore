@@ -1,18 +1,26 @@
-# Terraform files
+# Terraform files (in terraform/ directory)
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfvars
+terraform/*.tfvars.json
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/tfplan
+terraform/tfplan.json
+terraform/crash.log
+terraform/crash.*.log
+terraform/override.tf
+terraform/override.tf.json
+terraform/*_override.tf
+terraform/*_override.tf.json
+
+# Also ignore if in root (backward compatibility)
 *.tfstate
 *.tfstate.*
 *.tfvars
 *.tfvars.json
 .terraform/
 .terraform.lock.hcl
-tfplan
-tfplan.json
-crash.log
-crash.*.log
-override.tf
-override.tf.json
-*_override.tf
-*_override.tf.json
 
 # AWS
 .aws/
@@ -24,7 +32,8 @@ aws_config
 *.key
 *.pub
 
-# Node.js
+# Node.js (in app/ directory)
+app/node_modules/
 node_modules/
 npm-debug.log
 yarn-error.log
