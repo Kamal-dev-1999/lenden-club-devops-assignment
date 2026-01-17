@@ -21,32 +21,111 @@ This project demonstrates a complete **DevSecOps CI/CD pipeline** that automatic
 
 ---
 
-## 🔄 Pipeline Overview
+## 🏗️ Architecture Overview
 
-The Jenkins pipeline consists of **three main stages**:
-
-### Stage 1: Install Tools
-- Installs **Trivy** (security scanner) and **Terraform** to the Jenkins agent
-- Tools are cached in `/tmp/tools` for faster subsequent builds
-- Ensures consistent tooling across all pipeline runs
-
-### Stage 2: Infrastructure Security Scan (Trivy)
-- Scans all Terraform (`.tf`) and Docker files for misconfigurations
-- Checks against **HIGH** and **CRITICAL** severity levels
-- Reports findings in a table format for easy review
-- Does **not** block the build—allows visibility into issues
-
-### Stage 3: Terraform Plan
-- Initializes Terraform with AWS provider
-- Generates an execution plan showing what infrastructure changes would occur
-- Validates that the IaC is syntactically correct and deployable
+### High-Level Architecture Diagram
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  Install Tools  │───▶│  Security Scan  │───▶│ Terraform Plan  │
-│   (Trivy, TF)   │    │    (Trivy)      │    │   (Validate)    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              DEVELOPER WORKSTATION                               │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐                          │
+│  │   app.js    │    │  Dockerfile │    │   main.tf   │                          │
+│  │  (Node.js)  │    │  (Docker)   │    │ (Terraform) │                          │
+│  └──────┬──────┘    └──────┬──────┘    └──────┬──────┘                          │
+│         └──────────────────┼──────────────────┘                                  │
+│                            ▼                                                     │
+│                    ┌──────────────┐                                              │
+│                    │   git push   │                                              │
+│                    └──────┬───────┘                                              │
+└───────────────────────────┼─────────────────────────────────────────────────────┘
+                            ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                   GITHUB                                         │
+│                    ┌──────────────────────────┐                                  │
+│                    │  lenden-club-devops-     │                                  │
+│                    │  assignment (main)       │                                  │
+│                    └────────────┬─────────────┘                                  │
+└─────────────────────────────────┼───────────────────────────────────────────────┘
+                                  ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           JENKINS CI/CD PIPELINE                                 │
+│                                                                                  │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐              │
+│  │  STAGE 1        │    │  STAGE 2        │    │  STAGE 3        │              │
+│  │  Install Tools  │───▶│  Security Scan  │───▶│  Terraform Plan │              │
+│  │  ┌───────────┐  │    │  ┌───────────┐  │    │  ┌───────────┐  │              │
+│  │  │  Trivy    │  │    │  │  Trivy    │  │    │  │ terraform │  │              │
+│  │  │  Terraform│  │    │  │  config . │  │    │  │   init    │  │              │
+│  │  └───────────┘  │    │  └───────────┘  │    │  │   plan    │  │              │
+│  └─────────────────┘    └────────┬────────┘    │  └───────────┘  │              │
+│                                  │             └────────┬────────┘              │
+│                                  ▼                      │                        │
+│                         ┌───────────────┐               │                        │
+│                         │ SCAN REPORT   │               │                        │
+│                         │ - HIGH        │               │                        │
+│                         │ - CRITICAL    │               │                        │
+│                         └───────────────┘               │                        │
+└─────────────────────────────────────────────────────────┼───────────────────────┘
+                                                          ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              AWS CLOUD (us-east-1)                               │
+│                                                                                  │
+│  ┌───────────────────────────────────────────────────────────────────────────┐  │
+│  │                        VPC (10.0.0.0/16)                                   │  │
+│  │  ┌─────────────────────────────────────────────────────────────────────┐  │  │
+│  │  │                    Public Subnet (10.0.1.0/24)                       │  │  │
+│  │  │                                                                      │  │  │
+│  │  │   ┌─────────────────────────────────────────────────────────────┐   │  │  │
+│  │  │   │                EC2 Instance (t2.micro)                      │   │  │  │
+│  │  │   │   ┌─────────────────┐    ┌─────────────────────────────┐   │   │  │  │
+│  │  │   │   │     Docker      │    │    Security Features:       │   │   │  │  │
+│  │  │   │   │  ┌───────────┐  │    │    ✅ IMDSv2 Required       │   │   │  │  │
+│  │  │   │   │  │  Node.js  │  │    │    ✅ EBS Encrypted         │   │   │  │  │
+│  │  │   │   │  │   App     │  │    │    ✅ Restricted SSH        │   │   │  │  │
+│  │  │   │   │  │  :3000    │  │    │    ✅ VPC-only Egress       │   │   │  │  │
+│  │  │   │   │  └───────────┘  │    └─────────────────────────────┘   │   │  │  │
+│  │  │   │   └─────────────────┘                                       │   │  │  │
+│  │  │   └─────────────────────────────────────────────────────────────┘   │  │  │
+│  │  │                              │                                       │  │  │
+│  │  └──────────────────────────────┼───────────────────────────────────────┘  │  │
+│  │                                 │                                          │  │
+│  │  ┌──────────────────────────────┼───────────────────────────────────────┐  │  │
+│  │  │              Security Group (devsecops-secure-sg)                    │  │  │
+│  │  │                              │                                       │  │  │
+│  │  │   INGRESS:                   │      EGRESS:                          │  │  │
+│  │  │   ├─ SSH (22) ← Trusted IP   │      └─ All ← VPC CIDR only           │  │  │
+│  │  │   ├─ HTTP (80) ← 0.0.0.0/0   │         (10.0.0.0/16)                 │  │  │
+│  │  │   ├─ HTTPS (443) ← 0.0.0.0/0 │                                       │  │  │
+│  │  │   └─ App (3000) ← 0.0.0.0/0  │                                       │  │  │
+│  │  └──────────────────────────────────────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────────────────────────────────────┘  │
+│                                      │                                          │
+│  ┌──────────────┐    ┌───────────────┴───────────────┐                          │
+│  │   Internet   │◀───│       Internet Gateway        │                          │
+│  │   Gateway    │    │      (devsecops-igw)          │                          │
+│  └──────────────┘    └───────────────────────────────┘                          │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+                    ┌───────────────┐
+                    │    USERS      │
+                    │  Access App   │
+                    │  on :3000     │
+                    └───────────────┘
 ```
+
+### Component Description
+
+| Component | Purpose |
+|-----------|---------|
+| **GitHub Repository** | Source control for all IaC and application code |
+| **Jenkins Pipeline** | Automates security scanning and infrastructure validation |
+| **Trivy Scanner** | Detects misconfigurations in Terraform and Dockerfile |
+| **Terraform** | Provisions and manages AWS infrastructure |
+| **AWS VPC** | Isolated network environment (10.0.0.0/16) |
+| **EC2 Instance** | Hosts the Dockerized Node.js application |
+| **Security Group** | Firewall rules controlling inbound/outbound traffic |
+| **Docker Container** | Runs Node.js app as non-root user |
 
 ---
 
@@ -203,6 +282,85 @@ After applying all remediation steps, the final Trivy scan shows:
 - [AWS Security Best Practices](https://docs.aws.amazon.com/wellarchitected/latest/security-pillar/)
 - [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest)
 - [Docker Security Best Practices](https://docs.docker.com/develop/security-best-practices/)
+
+---
+
+## 🤖 GenAI Usage Log
+
+This section documents how Generative AI (GitHub Copilot - Claude Opus 4.5) was used throughout this project, in compliance with assignment transparency requirements.
+
+### AI Assistance Summary
+
+| Task Category | AI Contribution | Human Verification |
+|---------------|-----------------|-------------------|
+| Code Generation | Generated boilerplate code | Reviewed and tested all code |
+| Security Fixes | Suggested remediation patterns | Validated against AWS/Trivy docs |
+| Documentation | Structured README format | Edited for accuracy |
+| Troubleshooting | Debugged Jenkins pipeline errors | Verified fixes in live environment |
+
+### Detailed Usage Log
+
+#### 1. Project Setup & Scaffolding
+| Prompt | AI Output | Outcome |
+|--------|-----------|---------|
+| "Create a simple Node.js web application with Docker setup for DevSecOps" | Generated `app.js`, `package.json`, `Dockerfile`, `docker-compose.yml` | ✅ Used as base, tested locally |
+| "Create Terraform code with intentional SSH vulnerability" | Generated `main.tf`, `variables.tf`, `outputs.tf` with `0.0.0.0/0` SSH rule | ✅ Used to demonstrate vulnerability detection |
+
+#### 2. Infrastructure Development
+| Prompt | AI Output | Outcome |
+|--------|-----------|---------|
+| "Update Terraform to create VPC, subnet, internet gateway" | Generated complete VPC infrastructure code | ✅ Successfully deployed to AWS |
+| "Fix EC2 key pair issues" | Provided troubleshooting steps and variable configuration | ✅ Resolved deployment error |
+
+#### 3. Jenkins Pipeline Development
+| Prompt | AI Output | Outcome |
+|--------|-----------|---------|
+| "Create Jenkinsfile for CI/CD pipeline with security scanning" | Generated declarative pipeline with 3 stages | ✅ Modified for Jenkins environment |
+| "Fix Jenkins permission denied errors with apt-get" | Suggested using `/tmp/tools` directory with PATH update | ✅ Pipeline executed successfully |
+| "Fix unzip overwrite prompt issue" | Added `-o` flag and file existence checks | ✅ Build #13 passed |
+
+#### 4. Security Remediation
+| Prompt | AI Output | Outcome |
+|--------|-----------|---------|
+| "Explain why unrestricted SSH access is dangerous" | Provided risk explanation with real-world examples (Capital One breach) | ✅ Used in documentation |
+| "Fix all Trivy security findings" | Generated hardened `main.tf` and `Dockerfile` | ✅ Build #15: 0 Critical, 0 High |
+
+#### 5. Documentation
+| Prompt | AI Output | Outcome |
+|--------|-----------|---------|
+| "Generate project documentation with pipeline overview and remediation steps" | Created structured README with tables and code blocks | ✅ Edited for assignment requirements |
+
+### AI Tools Used
+
+| Tool | Model | Purpose |
+|------|-------|---------|
+| GitHub Copilot | Claude Opus 4.5 | Code generation, debugging, documentation |
+| VS Code Integration | Copilot Chat | Interactive problem-solving |
+
+### Learning Outcomes from AI Assistance
+
+1. **Terraform Best Practices**: Learned about IMDSv2, EBS encryption, and security group hardening
+2. **Docker Security**: Understood importance of non-root users in containers
+3. **Jenkins Pipeline**: Gained experience with declarative pipelines and tool installation
+4. **Shift-Left Security**: Understood how to integrate security scanning early in CI/CD
+
+### Human Contributions
+
+While AI assisted with code generation and suggestions, the following were done manually:
+
+- ✅ AWS account setup and credential configuration
+- ✅ Jenkins server installation and plugin configuration
+- ✅ Git repository creation and branch management
+- ✅ Testing and validation of all deployed infrastructure
+- ✅ Final review and approval of all code changes
+- ✅ Decision-making on security trade-offs (e.g., VPC-only egress vs. internet access)
+
+### Ethical Considerations
+
+- All AI-generated code was reviewed before use
+- Security recommendations were validated against official documentation
+- No sensitive data (credentials, keys) was shared with AI
+- AI suggestions were treated as starting points, not final solutions
 
 ---
 

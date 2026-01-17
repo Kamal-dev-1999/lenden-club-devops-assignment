@@ -1,0 +1,710 @@
+Started by user Kamal Chandramani Tripathi
+Obtained Jenkinsfile from git https://github.com/Kamal-dev-1999/lenden-club-devops-assignment
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins in /var/jenkins_home/workspace/DevSecOps-Pipeline
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+Selected Git installation does not exist. Using Default
+The recommended git tool is: NONE
+No credentials specified
+ > git rev-parse --resolve-git-dir /var/jenkins_home/workspace/DevSecOps-Pipeline/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/Kamal-dev-1999/lenden-club-devops-assignment # timeout=10
+Fetching upstream changes from https://github.com/Kamal-dev-1999/lenden-club-devops-assignment
+ > git --version # timeout=10
+ > git --version # 'git version 2.47.3'
+ > git fetch --tags --force --progress -- https://github.com/Kamal-dev-1999/lenden-club-devops-assignment +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/main^{commit} # timeout=10
+Checking out Revision 4ed1c72db6e9876e48fa6609a8152f25aeb38294 (refs/remotes/origin/main)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 4ed1c72db6e9876e48fa6609a8152f25aeb38294 # timeout=10
+Commit message: "fix: Apply security hardening to pass Trivy scan"
+ > git rev-list --no-walk de03d027c28e9f6514ee83eec251fc0bbe985925 # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] withCredentials
+Masking supported pattern matches of $AWS_ACCESS_KEY_ID or $AWS_SECRET_ACCESS_KEY
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] timestamps
+[Pipeline] {
+[Pipeline] timeout
+[2026-01-16T14:57:33.713Z] Timeout set to expire in 1 hr 0 min
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Install Tools)
+[Pipeline] sh
+[2026-01-16T14:57:34.216Z] + mkdir -p /tmp/tools
+[2026-01-16T14:57:34.217Z] + 
+[2026-01-16T14:57:34.217Z] + + echo [*] Installing Trivy...
+[2026-01-16T14:57:34.217Z] command -v trivy[*] Installing Trivy...
+[2026-01-16T14:57:34.217Z] 
+[2026-01-16T14:57:34.217Z] /tmp/tools/trivy
+[2026-01-16T14:57:34.217Z] + curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh
+[2026-01-16T14:57:34.217Z] + sh -s -- -b /tmp/tools
+[2026-01-16T14:57:34.468Z] aquasecurity/trivy info checking GitHub for latest tag
+[2026-01-16T14:57:35.381Z] aquasecurity/trivy info found version: 0.68.2 for v0.68.2/Linux/64bit
+[2026-01-16T14:59:52.874Z] aquasecurity/trivy info installed /tmp/tools/trivy
+[2026-01-16T14:59:52.874Z] + 
+[2026-01-16T14:59:52.874Z] + echo [*] Installing Terraform...
+[2026-01-16T14:59:52.874Z] [*] Installing Terraform...
+[2026-01-16T14:59:52.874Z] + curl -fsSL -o /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_amd64.zip
+[2026-01-16T14:59:52.874Z] + command -v terraform
+[2026-01-16T14:59:52.874Z] /tmp/tools/terraform
+[2026-01-16T14:59:58.076Z] + unzip -o /tmp/terraform.zip -d /tmp/tools/
+[2026-01-16T14:59:58.076Z] Archive:  /tmp/terraform.zip
+[2026-01-16T14:59:58.076Z]   inflating: /tmp/tools/terraform    
+[2026-01-16T14:59:58.076Z] + chmod +x /tmp/tools/terraform
+[2026-01-16T14:59:58.076Z] + rm /tmp/terraform.zip
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Infrastructure Security Scan)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] echo
+[2026-01-16T14:59:58.355Z] STAGE: Infrastructure Security Scan (Trivy)
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] catchError
+[Pipeline] {
+[Pipeline] sh
+[2026-01-16T14:59:58.795Z] + trivy config . --format table --severity HIGH,CRITICAL --exit-code 0
+[2026-01-16T14:59:58.795Z] 2026-01-16T14:59:58Z	INFO	[misconfig] Misconfiguration scanning is enabled
+[2026-01-16T15:00:00.139Z] 2026-01-16T14:59:59Z	INFO	[terraform scanner] Scanning root module	file_path="."
+[2026-01-16T15:00:00.139Z] 2026-01-16T14:59:59Z	WARN	[terraform parser] Variable values were not found in the environment or variable files. Evaluating may not work correctly.	module="root" variables="key_pair_name"
+[2026-01-16T15:00:00.139Z] 2026-01-16T14:59:59Z	INFO	[terraform scanner] Scanning root module	file_path="repo"
+[2026-01-16T15:00:00.139Z] 2026-01-16T14:59:59Z	WARN	[terraform parser] Variable values were not found in the environment or variable files. Evaluating may not work correctly.	module="root" variables="key_pair_name"
+[2026-01-16T15:00:00.139Z] 2026-01-16T14:59:59Z	INFO	Detected config files	num=6
+[2026-01-16T15:00:00.139Z] 
+[2026-01-16T15:00:00.139Z] Report Summary
+[2026-01-16T15:00:00.139Z] 
+[2026-01-16T15:00:00.139Z] ┌─────────────────┬────────────┬───────────────────┐
+[2026-01-16T15:00:00.139Z] │     Target      │    Type    │ Misconfigurations │
+[2026-01-16T15:00:00.139Z] ├─────────────────┼────────────┼───────────────────┤
+[2026-01-16T15:00:00.139Z] │ .               │ terraform  │         0         │
+[2026-01-16T15:00:00.139Z] ├─────────────────┼────────────┼───────────────────┤
+[2026-01-16T15:00:00.139Z] │ Dockerfile      │ dockerfile │         0         │
+[2026-01-16T15:00:00.139Z] ├─────────────────┼────────────┼───────────────────┤
+[2026-01-16T15:00:00.139Z] │ main.tf         │ terraform  │         3         │
+[2026-01-16T15:00:00.139Z] ├─────────────────┼────────────┼───────────────────┤
+[2026-01-16T15:00:00.139Z] │ repo            │ terraform  │         0         │
+[2026-01-16T15:00:00.139Z] ├─────────────────┼────────────┼───────────────────┤
+[2026-01-16T15:00:00.139Z] │ repo/Dockerfile │ dockerfile │         1         │
+[2026-01-16T15:00:00.139Z] ├─────────────────┼────────────┼───────────────────┤
+[2026-01-16T15:00:00.139Z] │ repo/main.tf    │ terraform  │         5         │
+[2026-01-16T15:00:00.139Z] └─────────────────┴────────────┴───────────────────┘
+[2026-01-16T15:00:00.139Z] Legend:
+[2026-01-16T15:00:00.139Z] - '-': Not scanned
+[2026-01-16T15:00:00.139Z] - '0': Clean (no security findings detected)
+[2026-01-16T15:00:00.139Z] 
+[2026-01-16T15:00:00.139Z] 
+[2026-01-16T15:00:00.139Z] main.tf (terraform)
+[2026-01-16T15:00:00.139Z] ===================
+[2026-01-16T15:00:00.139Z] Tests: 3 (SUCCESSES: 0, FAILURES: 3)
+[2026-01-16T15:00:00.139Z] Failures: 3 (HIGH: 0, CRITICAL: 3)
+[2026-01-16T15:00:00.139Z] 
+[2026-01-16T15:00:00.139Z] AVD-AWS-0104 (CRITICAL): Security group rule allows unrestricted egress to any IP address.
+[2026-01-16T15:00:00.140Z] ════════════════════════════════════════
+[2026-01-16T15:00:00.140Z] Opening up ports to connect out to the public internet is generally to be avoided. You should restrict access to IP addresses or ranges that are explicitly required where possible.
+[2026-01-16T15:00:00.140Z] 
+[2026-01-16T15:00:00.140Z] 
+[2026-01-16T15:00:00.140Z] See https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr
+[2026-01-16T15:00:00.140Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.140Z]  main.tf:125
+[2026-01-16T15:00:00.140Z]    via main.tf:120-126 (egress)
+[2026-01-16T15:00:00.140Z]     via main.tf:77-151 (aws_security_group.devsecops_sg)
+[2026-01-16T15:00:00.140Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.140Z]   77   resource "aws_security_group" "devsecops_sg" {
+[2026-01-16T15:00:00.140Z]   ..   
+[2026-01-16T15:00:00.140Z]  125 [     cidr_blocks = ["0.0.0.0/0"]
+[2026-01-16T15:00:00.140Z]  ...   
+[2026-01-16T15:00:00.140Z]  151   }
+[2026-01-16T15:00:00.140Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.140Z] 
+[2026-01-16T15:00:00.140Z] 
+[2026-01-16T15:00:00.140Z] AVD-AWS-0104 (CRITICAL): Security group rule allows unrestricted egress to any IP address.
+[2026-01-16T15:00:00.140Z] ════════════════════════════════════════
+[2026-01-16T15:00:00.140Z] Opening up ports to connect out to the public internet is generally to be avoided. You should restrict access to IP addresses or ranges that are explicitly required where possible.
+[2026-01-16T15:00:00.140Z] 
+[2026-01-16T15:00:00.140Z] 
+[2026-01-16T15:00:00.140Z] See https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr
+[2026-01-16T15:00:00.140Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.140Z]  main.tf:134
+[2026-01-16T15:00:00.140Z]    via main.tf:129-135 (egress)
+[2026-01-16T15:00:00.140Z]     via main.tf:77-151 (aws_security_group.devsecops_sg)
+[2026-01-16T15:00:00.140Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.140Z]   77   resource "aws_security_group" "devsecops_sg" {
+[2026-01-16T15:00:00.140Z]   ..   
+[2026-01-16T15:00:00.140Z]  134 [     cidr_blocks = ["0.0.0.0/0"]
+[2026-01-16T15:00:00.140Z]  ...   
+[2026-01-16T15:00:00.140Z]  151   }
+[2026-01-16T15:00:00.140Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.140Z] 
+[2026-01-16T15:00:00.140Z] 
+[2026-01-16T15:00:00.140Z] AVD-AWS-0104 (CRITICAL): Security group rule allows unrestricted egress to any IP address.
+[2026-01-16T15:00:00.140Z] ════════════════════════════════════════
+[2026-01-16T15:00:00.140Z] Opening up ports to connect out to the public internet is generally to be avoided. You should restrict access to IP addresses or ranges that are explicitly required where possible.
+[2026-01-16T15:00:00.140Z] 
+[2026-01-16T15:00:00.140Z] 
+[2026-01-16T15:00:00.140Z] See https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr
+[2026-01-16T15:00:00.140Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.140Z]  main.tf:143
+[2026-01-16T15:00:00.140Z]    via main.tf:138-144 (egress)
+[2026-01-16T15:00:00.140Z]     via main.tf:77-151 (aws_security_group.devsecops_sg)
+[2026-01-16T15:00:00.140Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.140Z]   77   resource "aws_security_group" "devsecops_sg" {
+[2026-01-16T15:00:00.140Z]   ..   
+[2026-01-16T15:00:00.140Z]  143 [     cidr_blocks = ["0.0.0.0/0"]
+[2026-01-16T15:00:00.140Z]  ...   
+[2026-01-16T15:00:00.140Z]  151   }
+[2026-01-16T15:00:00.140Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.140Z] 
+[2026-01-16T15:00:00.140Z] 
+[2026-01-16T15:00:00.140Z] 
+[2026-01-16T15:00:00.140Z] repo/Dockerfile (dockerfile)
+[2026-01-16T15:00:00.140Z] ============================
+[2026-01-16T15:00:00.140Z] Tests: 20 (SUCCESSES: 19, FAILURES: 1)
+[2026-01-16T15:00:00.140Z] Failures: 1 (HIGH: 1, CRITICAL: 0)
+[2026-01-16T15:00:00.140Z] 
+[2026-01-16T15:00:00.140Z] AVD-DS-0002 (HIGH): Specify at least 1 USER command in Dockerfile with non-root user as argument
+[2026-01-16T15:00:00.141Z] ════════════════════════════════════════
+[2026-01-16T15:00:00.141Z] Running containers with 'root' user can lead to a container escape situation. It is a best practice to run containers as non-root users, which can be done by adding a 'USER' statement to the Dockerfile.
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] See https://avd.aquasec.com/misconfig/ds002
+[2026-01-16T15:00:00.141Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] repo/main.tf (terraform)
+[2026-01-16T15:00:00.141Z] ========================
+[2026-01-16T15:00:00.141Z] Tests: 5 (SUCCESSES: 0, FAILURES: 5)
+[2026-01-16T15:00:00.141Z] Failures: 5 (HIGH: 4, CRITICAL: 1)
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] AVD-AWS-0028 (HIGH): Instance does not require IMDS access to require a token.
+[2026-01-16T15:00:00.141Z] ════════════════════════════════════════
+[2026-01-16T15:00:00.141Z] IMDS v2 (Instance Metadata Service) introduced session authentication tokens which improve security when talking to IMDS.
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] By default <code>aws_instance</code> resource sets IMDS session auth tokens to be optional.
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] To fully protect IMDS you need to enable session tokens by using <code>metadata_options</code> block and its <code>http_tokens</code> variable set to <code>required</code>.
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] See https://avd.aquasec.com/misconfig/avd-aws-0028
+[2026-01-16T15:00:00.141Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.141Z]  repo/main.tf:134-162
+[2026-01-16T15:00:00.141Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.141Z]  134 ┌ resource "aws_instance" "devsecops_app" {
+[2026-01-16T15:00:00.141Z]  135 │   ami                    = data.aws_ami.ubuntu.id
+[2026-01-16T15:00:00.141Z]  136 │   instance_type          = var.instance_type
+[2026-01-16T15:00:00.141Z]  137 │   subnet_id              = aws_subnet.devsecops_subnet.id
+[2026-01-16T15:00:00.141Z]  138 │   vpc_security_group_ids = [aws_security_group.vulnerable_sg.id]
+[2026-01-16T15:00:00.141Z]  139 │   key_name               = var.key_pair_name
+[2026-01-16T15:00:00.141Z]  140 │   associate_public_ip_address = true
+[2026-01-16T15:00:00.141Z]  141 │ 
+[2026-01-16T15:00:00.141Z]  142 └   root_block_device {
+[2026-01-16T15:00:00.141Z]  ...   
+[2026-01-16T15:00:00.141Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] AVD-AWS-0104 (CRITICAL): Security group rule allows unrestricted egress to any IP address.
+[2026-01-16T15:00:00.141Z] ════════════════════════════════════════
+[2026-01-16T15:00:00.141Z] Opening up ports to connect out to the public internet is generally to be avoided. You should restrict access to IP addresses or ranges that are explicitly required where possible.
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] See https://avd.aquasec.com/misconfig/aws-vpc-no-public-egress-sgr
+[2026-01-16T15:00:00.141Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.141Z]  repo/main.tf:123
+[2026-01-16T15:00:00.141Z]    via repo/main.tf:119-124 (egress)
+[2026-01-16T15:00:00.141Z]     via repo/main.tf:77-131 (aws_security_group.vulnerable_sg)
+[2026-01-16T15:00:00.141Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.141Z]   77   resource "aws_security_group" "vulnerable_sg" {
+[2026-01-16T15:00:00.141Z]   ..   
+[2026-01-16T15:00:00.141Z]  123 [     cidr_blocks = ["0.0.0.0/0"]
+[2026-01-16T15:00:00.141Z]  ...   
+[2026-01-16T15:00:00.141Z]  131   }
+[2026-01-16T15:00:00.141Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] AVD-AWS-0107 (HIGH): Security group rule allows unrestricted ingress from any IP address.
+[2026-01-16T15:00:00.141Z] ════════════════════════════════════════
+[2026-01-16T15:00:00.141Z] Security groups provide stateful filtering of ingress and egress network traffic to AWS
+[2026-01-16T15:00:00.141Z] resources. It is recommended that no security group allows unrestricted ingress access to
+[2026-01-16T15:00:00.141Z] remote server administration ports, such as SSH to port 22 and RDP to port 3389.
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.141Z] 
+[2026-01-16T15:00:00.142Z] See https://avd.aquasec.com/misconfig/avd-aws-0107
+[2026-01-16T15:00:00.142Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.142Z]  repo/main.tf:88
+[2026-01-16T15:00:00.142Z]    via repo/main.tf:83-89 (ingress)
+[2026-01-16T15:00:00.142Z]     via repo/main.tf:77-131 (aws_security_group.vulnerable_sg)
+[2026-01-16T15:00:00.142Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.142Z]   77   resource "aws_security_group" "vulnerable_sg" {
+[2026-01-16T15:00:00.142Z]   ..   
+[2026-01-16T15:00:00.142Z]   88 [     cidr_blocks = ["0.0.0.0/0"]
+[2026-01-16T15:00:00.142Z]  ...   
+[2026-01-16T15:00:00.142Z]  131   }
+[2026-01-16T15:00:00.142Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.142Z] 
+[2026-01-16T15:00:00.142Z] 
+[2026-01-16T15:00:00.142Z] AVD-AWS-0131 (HIGH): Root block device is not encrypted.
+[2026-01-16T15:00:00.142Z] ════════════════════════════════════════
+[2026-01-16T15:00:00.142Z] Block devices should be encrypted to ensure sensitive data is held securely at rest.
+[2026-01-16T15:00:00.142Z] 
+[2026-01-16T15:00:00.142Z] 
+[2026-01-16T15:00:00.142Z] See https://avd.aquasec.com/misconfig/avd-aws-0131
+[2026-01-16T15:00:00.142Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.142Z]  repo/main.tf:134-162
+[2026-01-16T15:00:00.142Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.142Z]  134 ┌ resource "aws_instance" "devsecops_app" {
+[2026-01-16T15:00:00.142Z]  135 │   ami                    = data.aws_ami.ubuntu.id
+[2026-01-16T15:00:00.142Z]  136 │   instance_type          = var.instance_type
+[2026-01-16T15:00:00.142Z]  137 │   subnet_id              = aws_subnet.devsecops_subnet.id
+[2026-01-16T15:00:00.142Z]  138 │   vpc_security_group_ids = [aws_security_group.vulnerable_sg.id]
+[2026-01-16T15:00:00.142Z]  139 │   key_name               = var.key_pair_name
+[2026-01-16T15:00:00.142Z]  140 │   associate_public_ip_address = true
+[2026-01-16T15:00:00.142Z]  141 │ 
+[2026-01-16T15:00:00.142Z]  142 └   root_block_device {
+[2026-01-16T15:00:00.142Z]  ...   
+[2026-01-16T15:00:00.142Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.142Z] 
+[2026-01-16T15:00:00.142Z] 
+[2026-01-16T15:00:00.142Z] AVD-AWS-0164 (HIGH): Subnet associates public IP address.
+[2026-01-16T15:00:00.142Z] ════════════════════════════════════════
+[2026-01-16T15:00:00.142Z] You should limit the provision of public IP addresses for resources. Resources should not be exposed on the public internet, but should have access limited to consumers required for the function of your application.
+[2026-01-16T15:00:00.142Z] 
+[2026-01-16T15:00:00.142Z] 
+[2026-01-16T15:00:00.142Z] See https://avd.aquasec.com/misconfig/aws-vpc-no-public-ingress-sgr
+[2026-01-16T15:00:00.142Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.142Z]  repo/main.tf:32
+[2026-01-16T15:00:00.142Z]    via repo/main.tf:28-38 (aws_subnet.devsecops_subnet)
+[2026-01-16T15:00:00.142Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.142Z]   28   resource "aws_subnet" "devsecops_subnet" {
+[2026-01-16T15:00:00.142Z]   29     vpc_id                  = aws_vpc.devsecops_vpc.id
+[2026-01-16T15:00:00.142Z]   30     cidr_block              = "10.0.1.0/24"
+[2026-01-16T15:00:00.142Z]   31     availability_zone       = data.aws_availability_zones.available.names[0]
+[2026-01-16T15:00:00.142Z]   32 [   map_public_ip_on_launch = true
+[2026-01-16T15:00:00.142Z]   33   
+[2026-01-16T15:00:00.142Z]   34     tags = {
+[2026-01-16T15:00:00.142Z]   35       Name        = "devsecops-subnet"
+[2026-01-16T15:00:00.142Z]   36       Environment = var.environment
+[2026-01-16T15:00:00.142Z]   ..   
+[2026-01-16T15:00:00.142Z] ────────────────────────────────────────
+[2026-01-16T15:00:00.142Z] 
+[2026-01-16T15:00:00.142Z] 
+[Pipeline] }
+[Pipeline] // catchError
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Terraform Plan)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] echo
+[2026-01-16T15:00:00.480Z] STAGE: Terraform Plan
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] sh
+[2026-01-16T15:00:00.843Z] + terraform init
+[2026-01-16T15:00:00.843Z] 
+[2026-01-16T15:00:00.843Z] [0m[1mInitializing the backend...[0m
+[2026-01-16T15:00:02.706Z] 
+[2026-01-16T15:00:02.706Z] [0m[1mInitializing provider plugins...[0m
+[2026-01-16T15:00:02.706Z] - Reusing previous version of hashicorp/aws from the dependency lock file
+[2026-01-16T15:00:05.191Z] - Installing hashicorp/aws v5.100.0...
+[2026-01-16T15:01:24.282Z] - Installed hashicorp/aws v5.100.0 (signed by HashiCorp)
+[2026-01-16T15:01:24.282Z] 
+[2026-01-16T15:01:24.282Z] Terraform has made some changes to the provider dependency selections recorded
+[2026-01-16T15:01:24.282Z] in the .terraform.lock.hcl file. Review those changes and commit them to your
+[2026-01-16T15:01:24.282Z] version control system if they represent changes you intended to make.
+[2026-01-16T15:01:24.282Z] 
+[2026-01-16T15:01:24.282Z] [0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+[2026-01-16T15:01:24.282Z] [0m[32m
+[2026-01-16T15:01:24.282Z] You may now begin working with Terraform. Try running "terraform plan" to see
+[2026-01-16T15:01:24.282Z] any changes that are required for your infrastructure. All Terraform commands
+[2026-01-16T15:01:24.282Z] should now work.
+[2026-01-16T15:01:24.282Z] 
+[2026-01-16T15:01:24.282Z] If you ever set or change modules or backend configuration for Terraform,
+[2026-01-16T15:01:24.282Z] rerun this command to reinitialize your working directory. If you forget, other
+[2026-01-16T15:01:24.282Z] commands will detect it and remind you to do so if necessary.[0m
+[2026-01-16T15:01:24.282Z] + terraform plan -var=key_pair_name=devsecops-dev-key -input=false
+[2026-01-16T15:01:29.480Z] [0m[1mdata.aws_availability_zones.available: Reading...[0m[0m
+[2026-01-16T15:01:29.480Z] [0m[1maws_vpc.devsecops_vpc: Refreshing state... [id=vpc-0e547c380feeca73a][0m
+[2026-01-16T15:01:29.480Z] [0m[1mdata.aws_ami.ubuntu: Reading...[0m[0m
+[2026-01-16T15:01:29.480Z] [0m[1maws_security_group.vulnerable_sg: Refreshing state... [id=sg-0e051ac3fbc6fb469][0m
+[2026-01-16T15:01:30.393Z] [0m[1mdata.aws_availability_zones.available: Read complete after 1s [id=us-east-1][0m
+[2026-01-16T15:01:30.945Z] [0m[1mdata.aws_ami.ubuntu: Read complete after 2s [id=ami-0030e4319cbf4dbf2][0m
+[2026-01-16T15:01:32.808Z] [0m[1maws_internet_gateway.devsecops_igw: Refreshing state... [id=igw-084e8e3f850f9aecd][0m
+[2026-01-16T15:01:32.808Z] [0m[1maws_subnet.devsecops_subnet: Refreshing state... [id=subnet-0fc95363794bff521][0m
+[2026-01-16T15:01:33.060Z] [0m[1maws_route_table.devsecops_rt: Refreshing state... [id=rtb-06376656a23e3c2de][0m
+[2026-01-16T15:01:33.612Z] [0m[1maws_route_table_association.devsecops_rta: Refreshing state... [id=rtbassoc-02f80037c4b801efe][0m
+[2026-01-16T15:01:33.612Z] [0m[1maws_instance.devsecops_app: Refreshing state... [id=i-01b6ec03f81ca75b9][0m
+[2026-01-16T15:01:38.964Z] 
+[2026-01-16T15:01:38.964Z] Terraform used the selected providers to generate the following execution
+[2026-01-16T15:01:38.964Z] plan. Resource actions are indicated with the following symbols:
+[2026-01-16T15:01:38.964Z]   [32m+[0m create[0m
+[2026-01-16T15:01:38.964Z]   [33m~[0m update in-place[0m
+[2026-01-16T15:01:38.964Z]   [31m-[0m destroy[0m
+[2026-01-16T15:01:38.964Z] [31m-[0m/[32m+[0m destroy and then create replacement[0m
+[2026-01-16T15:01:38.964Z] 
+[2026-01-16T15:01:38.964Z] Terraform will perform the following actions:
+[2026-01-16T15:01:38.964Z] 
+[2026-01-16T15:01:38.964Z] [1m  # aws_instance.devsecops_app[0m must be [1m[31mreplaced[0m
+[2026-01-16T15:01:38.964Z] [0m[31m-[0m/[32m+[0m[0m resource "aws_instance" "devsecops_app" {
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m arn                                  = "arn:aws:ec2:us-east-1:393897072130:instance/i-01b6ec03f81ca75b9" -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m availability_zone                    = "us-east-1a" -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m cpu_core_count                       = 1 -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m cpu_threads_per_core                 = 1 -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m disable_api_stop                     = false -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m disable_api_termination              = false -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m ebs_optimized                        = false -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [32m+[0m[0m enable_primary_ipv6                  = (known after apply)
+[2026-01-16T15:01:38.964Z]       [31m-[0m[0m hibernation                          = false [90m-> null[0m[0m
+[2026-01-16T15:01:38.964Z]       [32m+[0m[0m host_id                              = (known after apply)
+[2026-01-16T15:01:38.964Z]       [32m+[0m[0m host_resource_group_arn              = (known after apply)
+[2026-01-16T15:01:38.964Z]       [32m+[0m[0m iam_instance_profile                 = (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m id                                   = "i-01b6ec03f81ca75b9" -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m instance_initiated_shutdown_behavior = "stop" -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [32m+[0m[0m instance_lifecycle                   = (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m instance_state                       = "running" -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m ipv6_address_count                   = 0 -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m ipv6_addresses                       = [] -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m monitoring                           = false -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [32m+[0m[0m outpost_arn                          = (known after apply)
+[2026-01-16T15:01:38.964Z]       [32m+[0m[0m password_data                        = (known after apply)
+[2026-01-16T15:01:38.964Z]       [32m+[0m[0m placement_group                      = (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m placement_partition_number           = 0 -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m primary_network_interface_id         = "eni-0a822cfeb28860757" -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m private_dns                          = "ip-10-0-1-90.ec2.internal" -> (known after apply)
+[2026-01-16T15:01:38.964Z]       [33m~[0m[0m private_ip                           = "10.0.1.90" -> (known after apply)
+[2026-01-16T15:01:38.965Z]       [33m~[0m[0m public_dns                           = "ec2-98-92-190-120.compute-1.amazonaws.com" -> (known after apply)
+[2026-01-16T15:01:38.965Z]       [33m~[0m[0m public_ip                            = "98.92.190.120" -> (known after apply)
+[2026-01-16T15:01:38.965Z]       [33m~[0m[0m secondary_private_ips                = [] -> (known after apply)
+[2026-01-16T15:01:38.965Z]       [33m~[0m[0m security_groups                      = [] -> (known after apply)
+[2026-01-16T15:01:38.965Z]       [32m+[0m[0m spot_instance_request_id             = (known after apply)
+[2026-01-16T15:01:38.965Z]         tags                                 = {
+[2026-01-16T15:01:38.965Z]             "Environment" = "development"
+[2026-01-16T15:01:38.965Z]             "Name"        = "devsecops-app-server"
+[2026-01-16T15:01:38.965Z]         }
+[2026-01-16T15:01:38.965Z]       [33m~[0m[0m tenancy                              = "default" -> (known after apply)
+[2026-01-16T15:01:38.965Z]       [32m+[0m[0m user_data_base64                     = (known after apply)
+[2026-01-16T15:01:38.965Z]       [33m~[0m[0m vpc_security_group_ids               = [
+[2026-01-16T15:01:38.965Z]           [31m-[0m[0m "sg-0e051ac3fbc6fb469",
+[2026-01-16T15:01:38.965Z]         ] -> (known after apply)
+[2026-01-16T15:01:38.965Z]         [90m# (10 unchanged attributes hidden)[0m[0m
+[2026-01-16T15:01:38.965Z] 
+[2026-01-16T15:01:38.965Z]       [31m-[0m[0m capacity_reservation_specification {
+[2026-01-16T15:01:38.965Z]           [31m-[0m[0m capacity_reservation_preference = "open" [90m-> null[0m[0m
+[2026-01-16T15:01:38.965Z]         }
+[2026-01-16T15:01:38.965Z] 
+[2026-01-16T15:01:38.965Z]       [31m-[0m[0m cpu_options {
+[2026-01-16T15:01:38.965Z]           [31m-[0m[0m core_count       = 1 [90m-> null[0m[0m
+[2026-01-16T15:01:38.965Z]           [31m-[0m[0m threads_per_core = 1 [90m-> null[0m[0m
+[2026-01-16T15:01:38.965Z]         }
+[2026-01-16T15:01:38.965Z] 
+[2026-01-16T15:01:38.965Z]       [31m-[0m[0m credit_specification {
+[2026-01-16T15:01:38.965Z]           [31m-[0m[0m cpu_credits = "standard" [90m-> null[0m[0m
+[2026-01-16T15:01:38.965Z]         }
+[2026-01-16T15:01:38.965Z] 
+[2026-01-16T15:01:38.965Z]       [31m-[0m[0m enclave_options {
+[2026-01-16T15:01:38.965Z]           [31m-[0m[0m enabled = false [90m-> null[0m[0m
+[2026-01-16T15:01:38.965Z]         }
+[2026-01-16T15:01:38.965Z] 
+[2026-01-16T15:01:38.965Z]       [31m-[0m[0m maintenance_options {
+[2026-01-16T15:01:38.965Z]           [31m-[0m[0m auto_recovery = "default" [90m-> null[0m[0m
+[2026-01-16T15:01:38.965Z]         }
+[2026-01-16T15:01:38.965Z] 
+[2026-01-16T15:01:38.965Z]       [33m~[0m[0m metadata_options {
+[2026-01-16T15:01:38.965Z]           [33m~[0m[0m http_tokens                 = "optional" [33m->[0m[0m "required"
+[2026-01-16T15:01:38.965Z]           [33m~[0m[0m instance_metadata_tags      = "disabled" [33m->[0m[0m "enabled"
+[2026-01-16T15:01:38.965Z]             [90m# (3 unchanged attributes hidden)[0m[0m
+[2026-01-16T15:01:38.965Z]         }
+[2026-01-16T15:01:38.965Z] 
+[2026-01-16T15:01:38.965Z]       [31m-[0m[0m private_dns_name_options {
+[2026-01-16T15:01:38.965Z]           [31m-[0m[0m enable_resource_name_dns_a_record    = false [90m-> null[0m[0m
+[2026-01-16T15:01:38.965Z]           [31m-[0m[0m enable_resource_name_dns_aaaa_record = false [90m-> null[0m[0m
+[2026-01-16T15:01:38.965Z]           [31m-[0m[0m hostname_type                        = "ip-name" [90m-> null[0m[0m
+[2026-01-16T15:01:38.965Z]         }
+[2026-01-16T15:01:38.965Z] 
+[2026-01-16T15:01:38.965Z]       [33m~[0m[0m root_block_device {
+[2026-01-16T15:01:38.965Z]           [33m~[0m[0m device_name           = "/dev/sda1" -> (known after apply)
+[2026-01-16T15:01:38.965Z]           [33m~[0m[0m encrypted             = false [33m->[0m[0m true [31m# forces replacement[0m[0m
+[2026-01-16T15:01:38.965Z]           [33m~[0m[0m iops                  = 3000 -> (known after apply)
+[2026-01-16T15:01:38.965Z]           [32m+[0m[0m kms_key_id            = (known after apply)
+[2026-01-16T15:01:38.965Z]             tags                  = {
+[2026-01-16T15:01:38.965Z]                 "Name" = "devsecops-root-volume"
+[2026-01-16T15:01:38.965Z]             }
+[2026-01-16T15:01:38.965Z]           [33m~[0m[0m tags_all              = {
+[2026-01-16T15:01:38.965Z]               [31m-[0m[0m "Name" = "devsecops-root-volume"
+[2026-01-16T15:01:38.965Z]             } -> (known after apply)
+[2026-01-16T15:01:38.965Z]           [33m~[0m[0m throughput            = 125 -> (known after apply)
+[2026-01-16T15:01:38.965Z]           [33m~[0m[0m volume_id             = "vol-0f9c33237d9a2e187" -> (known after apply)
+[2026-01-16T15:01:38.965Z]             [90m# (3 unchanged attributes hidden)[0m[0m
+[2026-01-16T15:01:38.965Z]         }
+[2026-01-16T15:01:38.965Z]     }
+[2026-01-16T15:01:38.965Z] 
+[2026-01-16T15:01:38.965Z] [1m  # aws_security_group.devsecops_sg[0m will be created
+[2026-01-16T15:01:38.965Z] [0m  [32m+[0m[0m resource "aws_security_group" "devsecops_sg" {
+[2026-01-16T15:01:38.965Z]       [32m+[0m[0m arn                    = (known after apply)
+[2026-01-16T15:01:38.965Z]       [32m+[0m[0m description            = "Hardened security group following security best practices"
+[2026-01-16T15:01:38.965Z]       [32m+[0m[0m egress                 = [
+[2026-01-16T15:01:38.965Z]           [32m+[0m[0m {
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m cidr_blocks      = [
+[2026-01-16T15:01:38.965Z]                   [32m+[0m[0m "0.0.0.0/0",
+[2026-01-16T15:01:38.965Z]                 ]
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m description      = "DNS outbound"
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m from_port        = 53
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m ipv6_cidr_blocks = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m prefix_list_ids  = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m protocol         = "udp"
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m security_groups  = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m self             = false
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m to_port          = 53
+[2026-01-16T15:01:38.965Z]             },
+[2026-01-16T15:01:38.965Z]           [32m+[0m[0m {
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m cidr_blocks      = [
+[2026-01-16T15:01:38.965Z]                   [32m+[0m[0m "0.0.0.0/0",
+[2026-01-16T15:01:38.965Z]                 ]
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m description      = "HTTP outbound"
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m from_port        = 80
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m ipv6_cidr_blocks = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m prefix_list_ids  = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m protocol         = "tcp"
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m security_groups  = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m self             = false
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m to_port          = 80
+[2026-01-16T15:01:38.965Z]             },
+[2026-01-16T15:01:38.965Z]           [32m+[0m[0m {
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m cidr_blocks      = [
+[2026-01-16T15:01:38.965Z]                   [32m+[0m[0m "0.0.0.0/0",
+[2026-01-16T15:01:38.965Z]                 ]
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m description      = "HTTPS outbound"
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m from_port        = 443
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m ipv6_cidr_blocks = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m prefix_list_ids  = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m protocol         = "tcp"
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m security_groups  = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m self             = false
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m to_port          = 443
+[2026-01-16T15:01:38.965Z]             },
+[2026-01-16T15:01:38.965Z]         ]
+[2026-01-16T15:01:38.965Z]       [32m+[0m[0m id                     = (known after apply)
+[2026-01-16T15:01:38.965Z]       [32m+[0m[0m ingress                = [
+[2026-01-16T15:01:38.965Z]           [32m+[0m[0m {
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m cidr_blocks      = [
+[2026-01-16T15:01:38.965Z]                   [32m+[0m[0m "0.0.0.0/0",
+[2026-01-16T15:01:38.965Z]                 ]
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m description      = "HTTP from anywhere"
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m from_port        = 80
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m ipv6_cidr_blocks = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m prefix_list_ids  = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m protocol         = "tcp"
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m security_groups  = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m self             = false
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m to_port          = 80
+[2026-01-16T15:01:38.965Z]             },
+[2026-01-16T15:01:38.965Z]           [32m+[0m[0m {
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m cidr_blocks      = [
+[2026-01-16T15:01:38.965Z]                   [32m+[0m[0m "0.0.0.0/0",
+[2026-01-16T15:01:38.965Z]                 ]
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m description      = "HTTPS from anywhere"
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m from_port        = 443
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m ipv6_cidr_blocks = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m prefix_list_ids  = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m protocol         = "tcp"
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m security_groups  = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m self             = false
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m to_port          = 443
+[2026-01-16T15:01:38.965Z]             },
+[2026-01-16T15:01:38.965Z]           [32m+[0m[0m {
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m cidr_blocks      = [
+[2026-01-16T15:01:38.965Z]                   [32m+[0m[0m "0.0.0.0/0",
+[2026-01-16T15:01:38.965Z]                 ]
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m description      = "Node.js app on port 3000"
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m from_port        = 3000
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m ipv6_cidr_blocks = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m prefix_list_ids  = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m protocol         = "tcp"
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m security_groups  = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m self             = false
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m to_port          = 3000
+[2026-01-16T15:01:38.965Z]             },
+[2026-01-16T15:01:38.965Z]           [32m+[0m[0m {
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m cidr_blocks      = [
+[2026-01-16T15:01:38.965Z]                   [32m+[0m[0m "10.0.0.0/8",
+[2026-01-16T15:01:38.965Z]                 ]
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m description      = "SSH from trusted IP only"
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m from_port        = 22
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m ipv6_cidr_blocks = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m prefix_list_ids  = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m protocol         = "tcp"
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m security_groups  = []
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m self             = false
+[2026-01-16T15:01:38.965Z]               [32m+[0m[0m to_port          = 22
+[2026-01-16T15:01:38.965Z]             },
+[2026-01-16T15:01:38.965Z]         ]
+[2026-01-16T15:01:38.965Z]       [32m+[0m[0m name                   = "devsecops-secure-sg"
+[2026-01-16T15:01:38.965Z]       [32m+[0m[0m name_prefix            = (known after apply)
+[2026-01-16T15:01:38.965Z]       [32m+[0m[0m owner_id               = (known after apply)
+[2026-01-16T15:01:38.965Z]       [32m+[0m[0m revoke_rules_on_delete = false
+[2026-01-16T15:01:38.965Z]       [32m+[0m[0m tags                   = {
+[2026-01-16T15:01:38.965Z]           [32m+[0m[0m "Environment" = "development"
+[2026-01-16T15:01:38.965Z]           [32m+[0m[0m "Name"        = "devsecops-secure-sg"
+[2026-01-16T15:01:38.965Z]           [32m+[0m[0m "Purpose"     = "Production-ready security"
+[2026-01-16T15:01:38.965Z]         }
+[2026-01-16T15:01:38.965Z]       [32m+[0m[0m tags_all               = {
+[2026-01-16T15:01:38.965Z]           [32m+[0m[0m "Environment" = "development"
+[2026-01-16T15:01:38.966Z]           [32m+[0m[0m "Name"        = "devsecops-secure-sg"
+[2026-01-16T15:01:38.966Z]           [32m+[0m[0m "Purpose"     = "Production-ready security"
+[2026-01-16T15:01:38.966Z]         }
+[2026-01-16T15:01:38.966Z]       [32m+[0m[0m vpc_id                 = "vpc-0e547c380feeca73a"
+[2026-01-16T15:01:38.966Z]     }
+[2026-01-16T15:01:38.966Z] 
+[2026-01-16T15:01:38.966Z] [1m  # aws_security_group.vulnerable_sg[0m will be [1m[31mdestroyed[0m
+[2026-01-16T15:01:38.966Z]   # (because aws_security_group.vulnerable_sg is not in configuration)
+[2026-01-16T15:01:38.966Z] [0m  [31m-[0m[0m resource "aws_security_group" "vulnerable_sg" {
+[2026-01-16T15:01:38.966Z]       [31m-[0m[0m arn                    = "arn:aws:ec2:us-east-1:393897072130:security-group/sg-0e051ac3fbc6fb469" [90m-> null[0m[0m
+[2026-01-16T15:01:38.966Z]       [31m-[0m[0m description            = "Intentionally vulnerable security group for testing security scanners" [90m-> null[0m[0m
+[2026-01-16T15:01:38.966Z]       [31m-[0m[0m egress                 = [
+[2026-01-16T15:01:38.966Z]           [31m-[0m[0m {
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m cidr_blocks      = [
+[2026-01-16T15:01:38.966Z]                   [31m-[0m[0m "0.0.0.0/0",
+[2026-01-16T15:01:38.966Z]                 ]
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m description      = ""
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m from_port        = 0
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m ipv6_cidr_blocks = []
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m prefix_list_ids  = []
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m protocol         = "-1"
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m security_groups  = []
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m self             = false
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m to_port          = 0
+[2026-01-16T15:01:38.966Z]             },
+[2026-01-16T15:01:38.966Z]         ] [90m-> null[0m[0m
+[2026-01-16T15:01:38.966Z]       [31m-[0m[0m id                     = "sg-0e051ac3fbc6fb469" [90m-> null[0m[0m
+[2026-01-16T15:01:38.966Z]       [31m-[0m[0m ingress                = [
+[2026-01-16T15:01:38.966Z]           [31m-[0m[0m {
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m cidr_blocks      = [
+[2026-01-16T15:01:38.966Z]                   [31m-[0m[0m "0.0.0.0/0",
+[2026-01-16T15:01:38.966Z]                 ]
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m description      = ""
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m from_port        = 3000
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m ipv6_cidr_blocks = []
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m prefix_list_ids  = []
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m protocol         = "tcp"
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m security_groups  = []
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m self             = false
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m to_port          = 3000
+[2026-01-16T15:01:38.966Z]             },
+[2026-01-16T15:01:38.966Z]           [31m-[0m[0m {
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m cidr_blocks      = [
+[2026-01-16T15:01:38.966Z]                   [31m-[0m[0m "0.0.0.0/0",
+[2026-01-16T15:01:38.966Z]                 ]
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m description      = "HTTP from anywhere"
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m from_port        = 80
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m ipv6_cidr_blocks = []
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m prefix_list_ids  = []
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m protocol         = "tcp"
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m security_groups  = []
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m self             = false
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m to_port          = 80
+[2026-01-16T15:01:38.966Z]             },
+[2026-01-16T15:01:38.966Z]           [31m-[0m[0m {
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m cidr_blocks      = [
+[2026-01-16T15:01:38.966Z]                   [31m-[0m[0m "0.0.0.0/0",
+[2026-01-16T15:01:38.966Z]                 ]
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m description      = "HTTPS from anywhere"
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m from_port        = 443
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m ipv6_cidr_blocks = []
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m prefix_list_ids  = []
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m protocol         = "tcp"
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m security_groups  = []
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m self             = false
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m to_port          = 443
+[2026-01-16T15:01:38.966Z]             },
+[2026-01-16T15:01:38.966Z]           [31m-[0m[0m {
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m cidr_blocks      = [
+[2026-01-16T15:01:38.966Z]                   [31m-[0m[0m "0.0.0.0/0",
+[2026-01-16T15:01:38.966Z]                 ]
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m description      = "SSH from anywhere - INTENTIONAL VULNERABILITY"
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m from_port        = 22
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m ipv6_cidr_blocks = []
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m prefix_list_ids  = []
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m protocol         = "tcp"
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m security_groups  = []
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m self             = false
+[2026-01-16T15:01:38.966Z]               [31m-[0m[0m to_port          = 22
+[2026-01-16T15:01:38.966Z]             },
+[2026-01-16T15:01:38.966Z]         ] [90m-> null[0m[0m
+[2026-01-16T15:01:38.966Z]       [31m-[0m[0m name                   = "devsecops-vulnerable-sg" [90m-> null[0m[0m
+[2026-01-16T15:01:38.966Z]       [31m-[0m[0m owner_id               = "393897072130" [90m-> null[0m[0m
+[2026-01-16T15:01:38.966Z]       [31m-[0m[0m revoke_rules_on_delete = false [90m-> null[0m[0m
+[2026-01-16T15:01:38.966Z]       [31m-[0m[0m tags                   = {
+[2026-01-16T15:01:38.966Z]           [31m-[0m[0m "Environment" = "development"
+[2026-01-16T15:01:38.966Z]           [31m-[0m[0m "Name"        = "devsecops-vulnerable-sg"
+[2026-01-16T15:01:38.966Z]           [31m-[0m[0m "Purpose"     = "Security Scanner Testing"
+[2026-01-16T15:01:38.966Z]         } [90m-> null[0m[0m
+[2026-01-16T15:01:38.966Z]       [31m-[0m[0m tags_all               = {
+[2026-01-16T15:01:38.966Z]           [31m-[0m[0m "Environment" = "development"
+[2026-01-16T15:01:38.966Z]           [31m-[0m[0m "Name"        = "devsecops-vulnerable-sg"
+[2026-01-16T15:01:38.966Z]           [31m-[0m[0m "Purpose"     = "Security Scanner Testing"
+[2026-01-16T15:01:38.966Z]         } [90m-> null[0m[0m
+[2026-01-16T15:01:38.966Z]       [31m-[0m[0m vpc_id                 = "vpc-0e547c380feeca73a" [90m-> null[0m[0m
+[2026-01-16T15:01:38.966Z]     }
+[2026-01-16T15:01:38.966Z] 
+[2026-01-16T15:01:38.966Z] [1m  # aws_subnet.devsecops_subnet[0m will be updated in-place
+[2026-01-16T15:01:38.966Z] [0m  [33m~[0m[0m resource "aws_subnet" "devsecops_subnet" {
+[2026-01-16T15:01:38.966Z]         id                                             = "subnet-0fc95363794bff521"
+[2026-01-16T15:01:38.966Z]       [33m~[0m[0m map_public_ip_on_launch                        = true [33m->[0m[0m false
+[2026-01-16T15:01:38.966Z]         tags                                           = {
+[2026-01-16T15:01:38.966Z]             "Environment" = "development"
+[2026-01-16T15:01:38.966Z]             "Name"        = "devsecops-subnet"
+[2026-01-16T15:01:38.966Z]         }
+[2026-01-16T15:01:38.966Z]         [90m# (15 unchanged attributes hidden)[0m[0m
+[2026-01-16T15:01:38.966Z]     }
+[2026-01-16T15:01:38.966Z] 
+[2026-01-16T15:01:38.966Z] [1mPlan:[0m 2 to add, 1 to change, 2 to destroy.
+[2026-01-16T15:01:38.966Z] [0m
+[2026-01-16T15:01:38.966Z] Changes to Outputs:
+[2026-01-16T15:01:38.966Z]   [33m~[0m[0m instance_id           = "i-01b6ec03f81ca75b9" -> (known after apply)
+[2026-01-16T15:01:38.966Z]   [33m~[0m[0m instance_private_ip   = "10.0.1.90" -> (known after apply)
+[2026-01-16T15:01:38.966Z]   [33m~[0m[0m instance_public_ip    = "98.92.190.120" -> (known after apply)
+[2026-01-16T15:01:38.966Z]   [33m~[0m[0m security_group_id     = "sg-0e051ac3fbc6fb469" -> (known after apply)
+[2026-01-16T15:01:38.966Z]   [33m~[0m[0m security_group_name   = "devsecops-vulnerable-sg" [33m->[0m[0m "devsecops-secure-sg"
+[2026-01-16T15:01:38.966Z]   [33m~[0m[0m ssh_connection_string = "ssh -i /path/to/key.pem ubuntu@98.92.190.120" -> (known after apply)
+[2026-01-16T15:01:38.966Z] [90m
+[2026-01-16T15:01:38.966Z] ─────────────────────────────────────────────────────────────────────────────[0m
+[2026-01-16T15:01:38.966Z] 
+[2026-01-16T15:01:38.966Z] Note: You didn't use the -out option to save this plan, so Terraform can't
+[2026-01-16T15:01:38.966Z] guarantee to take exactly these actions if you run "terraform apply" now.
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] echo
+[2026-01-16T15:01:39.321Z] Build Status: SUCCESS
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // timeout
+[Pipeline] }
+[Pipeline] // timestamps
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS
